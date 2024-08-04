@@ -1,14 +1,22 @@
 [tool.poetry]
 name = "asynch"
 version = "0.2.4"
-description = "A asyncio driver for ClickHouse with native tcp protocol"
+description = "An asyncio driver for ClickHouse with native TCP support"
 authors = ["long2ice <long2ice@gmail.com>"]
 license = "Apache-2.0"
 readme = "README.md"
 homepage = "https://github.com/long2ice/asynch"
 repository = "https://github.com/long2ice/asynch.git"
 documentation = "https://github.com/long2ice/asynch"
-keywords = ["ClickHouse", "asyncio", "driver"]
+keywords = [
+    "asyncio",
+    "clickhouse",
+    "column-oriented",
+    "database",
+    "driver",
+    "python",
+    "package",
+]
 packages = [
     { include = "asynch" }
 ]
