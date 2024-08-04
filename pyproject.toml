@@ -15,7 +15,7 @@ packages = [
 include = ["LICENSE", "README.md", "CHANGELOG.md"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 leb128 = "*"
 pytz = "*"
 lz4 = "*"
@@ -50,7 +50,13 @@ line-length = 100
 target-version = ['py38', 'py39', 'py310', 'py311']
 
 [tool.pytest.ini_options]
+addopts = "--maxfail=1 -s -vvv"
 asyncio_mode = "auto"
+minversion = "7.0"
+testpaths = [
+    "tests"
+]
+xfail_strict = true
 
 [tool.ruff]
 line-length = 100
