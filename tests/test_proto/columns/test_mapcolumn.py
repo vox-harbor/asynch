@@ -1,11 +1,15 @@
 from contextlib import asynccontextmanager
 from decimal import Decimal
+from typing import Any, Optional
 
 import pytest
 
+from asynch.connection import Connection
+from asynch.cursors import Cursor
+
 
 @asynccontextmanager
-async def create_table(cursor, spec):
+async def create_table(cursor: Cursor, spec):
     await cursor.execute("DROP TABLE IF EXISTS test.test")
     await cursor.execute(f"CREATE TABLE test.test ({spec}) engine=Memory")
 
@@ -17,9 +21,10 @@ async def create_table(cursor, spec):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "spec, data",
+    ("cursor_settings", "spec", "data"),
     [
         [
+            None,
             "a Map(String, UInt64)",
             [
                 ({},),
@@ -29,6 +34,7 @@ async def create_table(cursor, spec):
             ],
         ],
         [
+            None,
             "a Map(String, Nullable(UInt64))",
             [
                 ({},),
@@ -37,6 +43,7 @@ async def create_table(cursor, spec):
             ],
         ],
         [
+            {"allow_suspicious_low_cardinality_types": True},
             "a Map(LowCardinality(String), LowCardinality(UInt64))",
             [
                 ({"key1": 1},),
@@ -45,6 +52,7 @@ async def create_table(cursor, spec):
             ],
         ],
         [
+            None,
             "a Map(String, Array(UInt64))",
             [
                 ({"key1": []},),
@@ -53,6 +61,7 @@ async def create_table(cursor, spec):
             ],
         ],
         [
+            None,
             "a Map(String, Decimal(9, 2))",
             [
                 ({"key1": Decimal("123.45")},),
@@ -69,8 +78,15 @@ async def create_table(cursor, spec):
         "decimal",
     ],
 )
-async def test_map_column(conn, spec, data):
+async def test_map_column(
+    conn: Connection,
+    cursor_settings: Optional[dict[str, Any]],
+    spec: str,
+    data: list[tuple[dict[str, Any], ...]],
+):
     async with conn.cursor() as cursor:
+        if cursor_settings:
+            cursor.set_settings(settings=cursor_settings)
         async with create_table(cursor, spec):
             await cursor.execute("INSERT INTO test.test (a) VALUES", data)
             await cursor.execute("SELECT * FROM test.test")

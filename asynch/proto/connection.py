@@ -73,11 +73,11 @@ class Connection:
 
     def __init__(  # nosec:B107
         self,
-        host: str = "127.0.0.1",
-        port: int = 9000,
-        database: str = "default",
-        user: str = "default",
-        password: str = "",
+        host: str = constants.DEFAULT_HOST,
+        port: int = constants.DEFAULT_PORT,
+        database: str = constants.DEFAULT_DATABASE,
+        user: str = constants.DEFAULT_USER,
+        password: str = constants.DEFAULT_PASSWORD,
         client_name: str = constants.CLIENT_NAME,
         connect_timeout: int = constants.DBMS_DEFAULT_CONNECT_TIMEOUT_SEC,
         send_receive_timeout: int = constants.DBMS_DEFAULT_TIMEOUT_SEC,
@@ -90,9 +90,9 @@ class Connection:
         ssl_version=None,
         ca_certs=None,
         ciphers=None,
-        alt_hosts: str = None,
-        stack_track=False,
-        settings_is_important=False,
+        alt_hosts: Optional[str] = None,
+        stack_track: bool = False,
+        settings_is_important: bool = False,
         **kwargs,
     ):
         self.stack_track = stack_track
@@ -139,7 +139,7 @@ class Connection:
             self.compression = Compression.ENABLED
             self.compressor_cls = get_compressor_cls(compression)
             self.compress_block_size = compress_block_size
-        self.connected = False
+        self.connected: Optional[bool] = None
         self.reader: Optional[BufferedReader] = None
         self.writer: Optional[BufferedWriter] = None
         self.server_info: Optional[ServerInfo] = None
@@ -566,7 +566,6 @@ class Connection:
         if self.connected:
             self.connected = False
             await self.writer.close()
-
         self.reset_state()
 
     async def connect(self):
