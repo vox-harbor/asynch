@@ -2,6 +2,10 @@
 
 ## 0.2
 
+### 0.2.6
+
+- Remove obsolete `Pool` API. By @stankudrow in #120.
+
 ### 0.2.5
 
 - Add more validation rules in the `parse_dsn` function. By @stankudrow in #113
