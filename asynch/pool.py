@@ -3,18 +3,13 @@ import logging
 from collections import deque
 from contextlib import asynccontextmanager
 from typing import AsyncIterator, Optional
-from warnings import warn
 
 from asynch.connection import Connection, connect
-from asynch.errors import ClickHouseException
+from asynch.errors import AsynchPoolError
 from asynch.proto import constants
 from asynch.proto.models.enums import PoolStatus
 
 logger = logging.getLogger(__name__)
-
-
-class AsynchPoolError(ClickHouseException):
-    pass
 
 
 class Pool(asyncio.AbstractServer):
@@ -22,7 +17,6 @@ class Pool(asyncio.AbstractServer):
         self,
         minsize: int = constants.POOL_MIN_SIZE,
         maxsize: int = constants.POOL_MAX_SIZE,
-        loop: Optional[asyncio.AbstractEventLoop] = None,
         **kwargs,
     ):
         if maxsize < 1:
@@ -34,25 +28,11 @@ class Pool(asyncio.AbstractServer):
         self._maxsize = maxsize
         self._minsize = minsize
         self._connection_kwargs = kwargs
-        self._terminated: set[Connection] = set()
-        self._used: set[Connection] = set()
-        self._cond = asyncio.Condition()
-        self._closing = False
         self._lock = asyncio.Lock()
         self._acquired_connections: deque[Connection] = deque(maxlen=maxsize)
         self._free_connections: deque[Connection] = deque(maxlen=maxsize)
         self._opened: Optional[bool] = None
         self._closed: Optional[bool] = None
-        warn(
-            (
-                "The loop parameter must be removed when Python3.10 "
-                "will be the minimum version (in a year) or earlier."
-            ),
-            DeprecationWarning,
-        )
-        self._loop = (
-            loop if isinstance(loop, asyncio.AbstractEventLoop) else asyncio.get_running_loop()
-        )
 
     async def __aenter__(self) -> "Pool":
         await self.startup()
@@ -243,7 +223,7 @@ class Pool(asyncio.AbstractServer):
             self._closed = True
 
 
-async def create_async_pool(
+async def create_pool(
     minsize: int = constants.POOL_MIN_SIZE,
     maxsize: int = constants.POOL_MAX_SIZE,
     loop: Optional[asyncio.AbstractEventLoop] = None,
